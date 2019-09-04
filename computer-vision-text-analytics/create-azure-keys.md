@@ -38,7 +38,7 @@ az group create  --name contoso-travel-rg --location northcentralus
 
 > **NOTE:** When choosing locations, it's important to ensure all related services are created in the same location. Making calls across various Azure locations is the leading cause of poor performing applications on Azure. For our purposes, we're going to locate everything in **northcentralus**.
 
-2. Now use the following command to subscribe to the Computer Vision API and place the resulting resource named **computer-vision** in the resource group created in step 2:
+2. Now use the following command to subscribe to the Computer Vision API and place the resulting resource named **computer-vision** in the resource group created in step 2. Make sure you **log the endpoint url** provided by the output.
 
 ``` bash
 az cognitiveservices account create --resource-group contoso-travel-rg --name computer-vision --location northcentralus --kind ComputerVision --sku F0 --yes
@@ -53,14 +53,6 @@ az cognitiveservices account keys list --resource-group contoso-travel-rg --name
 ```
 
 > **NOTE:** The output from the command is a string containing numbers and letters. This is your Computer Vision API key. Copy the key into a text file and save it so that you can easily retrieve it later. You will need it later in this unit and in unit 4c below.
-
-4. Use the following command to obtain an endpoint URL for calling the Computer Vision API:
-
-``` bash
-az cognitiveservices account keys list --resource-group contoso-travel-rg --name computer-vision --query endpoint --output tsv
-```
-
-> **NOTE:** Once more, save the URL output from the command in a text file so that you can easily retrieve it later. This URL is the one that you will use to call the Computer Vision API.
 
 ## Summary and next steps
 
