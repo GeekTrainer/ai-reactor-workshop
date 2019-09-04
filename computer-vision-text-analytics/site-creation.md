@@ -10,7 +10,7 @@ Now that you have an environment for Python and Flask prepared and have the basi
 2. In a command window or terminal, use `cd` to switch to the project directory you created in the previous subsection. Then use the following command to clone the GitHub repo containing the starter files for the website:
 
 ``` bash
-git clone https://github.com/MicrosoftDocs/mslearn-ai-web-app-flask.git .
+git clone https://github.com/GeekTrainer/ai-workshop-starter.git .
 ```
 
 > **Note:** Don’t forget to include the period at the end of the command. Otherwise, the files will be copied into a subdirectory of the project directory rather than into the project directory itself.
