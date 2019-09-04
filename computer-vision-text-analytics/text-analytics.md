@@ -13,8 +13,7 @@ In order to call the Translator Text API, you must obtain an API key. As with th
 1. In a Command Prompt window or terminal, use the following command to subscribe to the Translator Text API and place the resulting resource named **translator-text** in the resource group you created earlier:
 
 ``` bash
-az cognitiveservices account create --resource-group contoso-travel-rg --name 
-translator-text --location global --kind TextTranslation --sku F0 --yes
+az cognitiveservices account create --resource-group contoso-travel-rg --name translator-text --location global --kind TextTranslation --sku F0 --yes
 ```
 
 > **NOTE:** Please note the above command is all one line
