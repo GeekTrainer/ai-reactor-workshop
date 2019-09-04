@@ -9,7 +9,7 @@ To build the website, you'll perform the following tasks:
 1. [Install Python and configure a virtual environment for development](./computer-vision-text-analytics/installation.md)
 2. Get a quick [overview of Python](./computer-vision-text-analytics/python.md)
 3. Get a quick [overview of Flask](./computer-vision-text-analytics/flask.md)
-4. [Build a build a Flask application](./computer-vision-text-analytics/site-creation.md) which accepts photo uploads
+4. [Build a Flask application](./computer-vision-text-analytics/site-creation.md) which accepts photo uploads
 5. [Create keys](./computer-vision-text-analytics/create-azure-resources.md) for Computer Vision and Text Analytics
 6. [Call Computer Vision API](./computer-vision-text-analytics/computer-vision.md) to extract text from photos
 7. [Call the Translator Text API](./computer-vision-text-analytics/text-analytics.md) to translate text from extracted photos
