@@ -7,6 +7,7 @@ In this module we'll use our existing Flask application to test Face API. We'll 
 To add the functionality, you will:
 
 1. Learn about [Face API](./face-api/introduction.md)
-2. Learn about [facial recognition](./face-api/facial-recognition.md)
-3. 
-
+2. Learn about [facial recognition](./face-api/facial-recognition-concepts.md)
+3. [Train a model](./face-api/train-face-api.md)
+4. [Add face detection](./face-api/detect-face-api.md)
+5. [Test and deploy the site](./face-api/ui-test.md)
