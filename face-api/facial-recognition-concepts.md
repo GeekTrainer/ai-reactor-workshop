@@ -50,4 +50,4 @@ Face lists are a great way to determine face similarity. For example, if you com
 
 ## Summary and next steps
 
-After training a model, Face API can offer you quite a bit of information about the people in a photograph. Let's see how we canasdfasdf
+After training a model, Face API can offer you quite a bit of information about the people in a photograph. Let's see how we [configure Face API for our account and train a model](./train-face-api.md).
