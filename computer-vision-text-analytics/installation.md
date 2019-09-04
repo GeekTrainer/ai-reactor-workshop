@@ -52,7 +52,7 @@ mkdir contoso && cd contoso
 # web framework
 flask
 # Azure SDK components
-azure-cognitive-services-vision-computervision
+azure-cognitiveservices-vision-computervision
 # System variables
 python-dotenv
 # REST calls
