@@ -41,8 +41,7 @@ az group create  --name contoso-travel-rg --location northcentralus
 2. Now use the following command to subscribe to the Computer Vision API and place the resulting resource named **computer-vision** in the resource group created in step 2:
 
 ``` bash
-az cognitiveservices account create --resource-group contoso-travel-rg --name 
-computer-vision --location northcentralus --kind ComputerVision --sku F0 --yes
+az cognitiveservices account create --resource-group contoso-travel-rg --name computer-vision --location northcentralus --kind ComputerVision --sku F0 --yes
 ```
 
 > **NOTE:** The --sku F0 parameter subscribes to the free tier of the Computer Vision API that allows up to 20 calls per minute and a maximum of 5,000 calls per month. This is fine for development, but in production, you would want to subscribe to one of the paid tiers that supports more traffic. For a summation of pricing tiers for the Computer Vision API, see [Cognitive Services Pricing—Computer Vision API](https://azure.microsoft.com/pricing/details/cognitive-services/computer-vision/).
