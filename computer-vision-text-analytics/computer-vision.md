@@ -321,6 +321,8 @@ Make sure you've saved all of the files you created or modified. Let's see if th
 
 Navigate to **http://localhost:5000** in your browser. Click **Upload Photo** and upload a picture which contains text. Confirm that after a brief pause the extracted text from the photo appears in the modal dialog box.
 
+> **NOTE:** The image must be smaller than 4MB. If you receive an error message indicating your key or endpoint are invalid (or None), try restarting the application manually.
+
 ## Summary and next steps
 
 You'll probably notice the text recognition isn't perfect. Depending on the clarity of the photo, the fonts, etc., there may be some small differences between actual text and what is detected. But you'll notice a high degree of success. Now we can take the [text and translate it](text-analytics.md).
