@@ -42,4 +42,4 @@ Face attributes are predefined properties of a face or properties that identify 
 
 ## Summary and next steps
 
-Face API is an extremely powerful Cognitive Service. Without any additional training, you can learn quite a bit about a face in an image. You can also begin to add your own training data to [recognize individual people](./facial-recognition.md).
+Face API is an extremely powerful Cognitive Service. Without any additional training, you can learn quite a bit about a face in an image. You can also begin to add your own training data to [recognize individual people](./facial-recognition-concepts.md).
