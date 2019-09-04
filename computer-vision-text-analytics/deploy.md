@@ -38,10 +38,10 @@ When you ran your website locally, it used `os.environ` to load API keys for Cog
 az webapp config appsettings set -g contoso-travel-rg -n APP_NAME --settings VISION_KEY=computer_vision_api_key
 ```
 
-2. Now use this command to create an application setting named **VISION_ENDPOINT** replacing **computer_vision_endpoint** with your Computer Vision API endpoint:
+2. Now use this command to create an application setting named **ENDPOINT** replacing **endpoint** with your Computer Vision API endpoint:
 
 ``` bash
-az webapp config appsettings set -g contoso-travel-rg -n APP_NAME --settings VISION_ENDPOINT=computer_vision_endpoint
+az webapp config appsettings set -g contoso-travel-rg -n APP_NAME --settings ENDPOINT=endpoint
 ```
 
 3. Finish up by using the following command to load your Translator Text API key into application settings, replacing **translate_api_key** with your API key:
