@@ -50,7 +50,7 @@ As before, replace `<translate_key>` with the key you just created for Translato
 1. Open **index.html** and insert the following statements at line 42, **just before** the `<img>` element. This will hard code a list of languages.
 
 ``` html
-<select id="language" class="form-control" name="language">
+<select id="target_language" class="form-control" name="target_language">
     <option value="en">English</option>
     <option value="zh-Hant">Chinese (simplified)</option>
     <option value="zh-Hans">Chinese (traditional)</option>
@@ -67,7 +67,7 @@ As before, replace `<translate_key>` with the key you just created for Translato
 2. Also in **index.html**, add the following statement to the `<script>` block at the bottom of the page:
 
 ``` html
-$("#language").val("{{ language }}");
+$("#target_language").val("{{ target_language }}");
 ```
 
 Here’s how the modified `<script>` block should look:
@@ -83,7 +83,7 @@ Here’s how the modified `<script>` block should look:
             $("#submit-button").click();
         });
 
-        $("#language").val("{{ language }}");
+        $("#target_language").val("{{ target_language }}");
     });
 </script>
 ```
@@ -112,7 +112,7 @@ Replace `index()` with the following code:
 ``` python
 @app.route("/", methods=["GET", "POST"])
 def index():
-    language="en"
+    target_language="en"
 
     if request.method == "POST":
         # Display the image that was uploaded
@@ -124,8 +124,8 @@ def index():
         lines = extract_text_from_image(image, vision_client)
 
         # Use the Translator Text API to translate text extracted from the image
-        language = request.form["language"]
-        translated_lines = translate_text(lines, language, translate_key)
+        target_language = request.form["target_language"]
+        translated_lines = translate_text(lines, target_language, translate_key)
 
         # Flash the translated text
         for translated_line in translated_lines:
@@ -135,7 +135,7 @@ def index():
         # Display a placeholder image
         uri = "/static/placeholder.png"
 
-    return render_template("index.html", image_uri=uri, language=language)
+    return render_template("index.html", image_uri=uri, target_language=target_language)
 ```
 
 ##### Breaking down the code
@@ -143,23 +143,23 @@ def index():
 The new lines of code are what we'll use to call our (soon to be added) function which will call the translator API.
 
 ``` python
-        language = request.form["language"]
-        translated_lines = translate_text(lines, language, translate_key)
+        target_language = request.form["target_language"]
+        translated_lines = translate_text(lines, target_language, translate_key)
 
         # Flash the translated text
         for translated_line in translated_lines:
             flash(translated_line)
 ```
 
-We start by reading the language from the form using `request.form["language"]`. We call our helper function `translate_text`, which will be created to return a list of lines of text from the image. And finally, we loop through the result in `translated_lines` adding them to FlashMessages.
+We start by reading the language from the form using `request.form["target_language"]`. We call our helper function `translate_text`, which will be created to return a list of lines of text from the image. And finally, we loop through the result in `translated_lines` adding them to FlashMessages.
 
 #### Add translate_text helper function
 
 Finally, let's add the `translate_text() function to the end of **app.py**.
 
 ``` python
-def translate_text(lines, language, key):
-    uri = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + language
+def translate_text(lines, target_language, key):
+    uri = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + target_language
 
     headers = {
         'Ocp-Apim-Subscription-Key': translate_key,
@@ -194,7 +194,7 @@ def translate_text(lines, language, key):
 ##### Breaking down the code
 
 ``` python
-uri = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + language
+uri = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + target_language
 ```
 
 We start by setting the URI for the translator service and specifying our language in the query string. We don't need to specify the source language as it will be automatically detected by the service.
