@@ -99,11 +99,11 @@ With our code built to detect the various faces in our image, it's time to turn 
 ``` python
 def get_names(identified_faces):
     names = []
-    for result in identified_faces:
+    for face in identified_faces:
         # Find the top candidate for each face
-        candidates = sorted(identified_faces.candidates, key=lambda c: c.confidence, reverse=True)
+        candidates = sorted(face.candidates, key=lambda c: c.confidence, reverse=True)
         # Was anyone recognized?
-        if len(candidates) > 0:
+        if candidates and len(candidates) > 0:
             # Get just the top candidate
             top_candidate = candidates[0]
             # See who the person is
@@ -114,6 +114,7 @@ def get_names(identified_faces):
                 names.append('I see ' + person.name)
             else:
                 names.append('I think I see ' + person.name)
+    return names
 ```
 
 ### Breaking down the code
@@ -122,9 +123,9 @@ def get_names(identified_faces):
 
 ``` python
 names = []
-for result in identified_faces:
+for face in identified_faces:
     # Find the top candidate for each face
-    candidates = sorted(result.candidates, key=lambda c: c.confidence, reverse=True)
+    candidates = sorted(face.candidates, key=lambda c: c.confidence, reverse=True)
 ```
 
 Each face will have a list of possible `candidates`, or who the person might be. Each candidate will have a `confidence`, which will be a 0.0 to 1.0 score of how certain the model is it identified a person. We want to find the person who most likely belongs to our face, meaning we need to perform a sort.
@@ -151,6 +152,7 @@ if top_candidate.confidence > .8:
     names.append('I see ' + person.name)
 else:
     names.append('I think I see ' + person.name)
+return names
 ```
 
 We close off by checking the confidence score and changing our output message accordingly. You can choose whatever threshold you feel is appropriate. For this sample, we've gone with 0.8, or 80%.
