@@ -139,7 +139,7 @@ operation = "Updated"
 person = next((p for p in people if p.name.lower() == name.lower()), None)
 if not person:
     operation = "Created"
-    person = face_client.person_group_person.create(group_id, name)
+    person = face_client.person_group_person.create(person_group_id, name)
 ```
 
 If the person doesn't exist, as identified by their name, we're going to create them. We start by looping through the list of people (unfortunately there is no `get` function) to find the person. If no match is found, we create the person by calling `create`.
@@ -172,10 +172,10 @@ Let's create the `get_people` helper function to manage our group and retrieve t
 ``` python
 def get_people():
     try:
-        face_client.person_group.create(group_id, name=group_id)
+        face_client.person_group.create(person_group_id, name=person_group_id)
     except:
         pass
-    people = face_client.person_group_person.list(group_id)
+    people = face_client.person_group_person.list(person_group_id)
     return people
 ```
 
@@ -185,7 +185,7 @@ def get_people():
 
 ``` python
 try:
-    face_client.person_group.create(group_id, name=group_id)
+    face_client.person_group.create(person_group_id, name=person_group_id)
 except:
     pass
 ```
@@ -195,7 +195,7 @@ Unfortunately, `face_client` doesn't support an `exists` function or another way
 #### Retrieving and returning people
 
 ``` python
-people = face_client.person_group_person.list(group_id)
+people = face_client.person_group_person.list(person_group_id)
 return people
 ```
 

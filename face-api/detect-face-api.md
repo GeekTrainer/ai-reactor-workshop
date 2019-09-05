@@ -27,7 +27,7 @@ def detect():
     face_ids = list(map((lambda f: f.face_id), faces))
 
     # Ask Azure who the faces are
-    identified_faces = face_client.face.identify(face_ids, group_id)
+    identified_faces = face_client.face.identify(face_ids, person_group_id)
 
     names = get_names(identified_faces)
 
@@ -64,7 +64,7 @@ faces = face_client.face.detect_with_stream(image)
 face_ids = list(map((lambda f: f.face_id), faces))
 
 # Ask Azure who the faces are
-identified_faces = face_client.face.identify(face_ids, group_id)
+identified_faces = face_client.face.identify(face_ids, person_group_id)
 
 names = get_names(identified_faces)
 ```
@@ -107,7 +107,7 @@ def get_names(identified_faces):
             # Get just the top candidate
             top_candidate = candidates[0]
             # See who the person is
-            person = face_client.person_group_person.get(group_id, top_candidate.person_id)
+            person = face_client.person_group_person.get(person_group_id, top_candidate.person_id)
 
             # How certain are we this is the person?
             if top_candidate.confidence > .8:
@@ -138,7 +138,7 @@ if len(candidates) > 0:
     # Get just the top candidate
     top_candidate = candidates[0]
     # See who the person is
-    person = face_client.person_group_person.get(group_id, top_candidate.person_id)
+    person = face_client.person_group_person.get(person_group_id, top_candidate.person_id)
 ```
 
 Each face might have multiple candidates (or none). We check to see if any possible matches were found by using `len`. Assuming there's at least one candidate, we grab the first by using `candidates[0]` and storing it in `top_candidate`. We **finally** put the name to the face by making a call to `get`, which allows us to pass in the ID of our person group, and then the ID of the person we found.
