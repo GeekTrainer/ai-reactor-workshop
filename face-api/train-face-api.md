@@ -8,10 +8,12 @@ In order to recognize people in an image you need to first train up your model. 
 
 As we've seen, in order to us a Cognitive Service we need to have a key. You can create an [All-in-One](https://portal.azure.com/#create/Microsoft.CognitiveServicesAllInOne) key, which will give you access to almost every Cognitive Service, or create a key for each separate service. The advantage to the latter (creating a key for each service) is there is a free pricing tier available. We're going to create a key for Face API by using the [Azure CLI](https://docs.microsoft.com/cli/azure/get-started-with-azure-cli?view=azure-cli-latest).
 
-1. In a command or terminal window, execute the following command. The endpoint will be displayed as part of the output; make sure you **log the endpoint** somewhere, as we'll need it momentarily.
+1. In a command or terminal window, execute the following command.
+
+> **NOTE:** In order to complete this portion of the lab, **a standard subscription is required** for Face API. You can see the [pricing details for Face API](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/face-api/) for more information.
 
 ``` bash
-az cognitiveservices account create --resource-group contoso-travel-rg --name face-api --location northcentralus --kind Face --sku F0 --yes
+az cognitiveservices account create --resource-group contoso-travel-rg --name face-api --location northcentralus --kind Face --sku S0 --yes
 ```
 
 > **NOTE:** As before, we are placing our service in northcentralus. We want to ensure all related services are placed in the same region for performance.
@@ -30,10 +32,9 @@ We're using dotenv to manage our environmental variables. We now have a new key 
 
 ``` bash
 FACE_API_KEY=<your_face_api_key>
-FACE_API_ENDPOINT=<your_endpoint>
 ```
 
-Update `<your_face_api_key>` and `<your_endpoint>` with the key and URL you received from the prior step.
+Update `<your_face_api_key>` with the key and URL you received from the prior step.
 
 ## Adding the package
 
@@ -62,8 +63,7 @@ We're going to use `face_client` to interact with Face API. We'll start by addin
 ``` python
 from azure.cognitiveservices.vision.face import FaceClient
 face_api_key=os.environ["FACE_API_KEY"]
-face_api_endpoint=os.environ["FACE_API_ENDPOINT"]
-face_client = FaceClient(face_api_endpoint, CognitiveServicesCredentials(face_api_key))
+face_client = FaceClient(endpoint, CognitiveServicesCredentials(face_api_key))
 person_group_id = 'reactor'
 ```
 
