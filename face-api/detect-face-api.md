@@ -8,7 +8,7 @@ We're going to update **app.py** to add a **detect** route, and display the list
 
 ## Create detect function
 
-1. Just below the end of `train` in **app.py**, add the following code.
+1. Between the `train` and `get_people` functions you created in **app.py**, add the following code.
 
 ``` python
 @app.route('/detect', methods=['GET', 'POST'])
