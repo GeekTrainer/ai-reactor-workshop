@@ -26,10 +26,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Create a ComputerVisionClient for calling the Computer Vision API
-vision_endpoint = os.environ["VISION_ENDPOINT"]
+endpoint = os.environ["ENDPOINT"]
 vision_key = os.environ["VISION_KEY"]
 vision_credentials = CognitiveServicesCredentials(vision_key)
-vision_client = ComputerVisionClient(vision_endpoint, vision_credentials)
+vision_client = ComputerVisionClient(endpoint, vision_credentials)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -73,13 +73,13 @@ load_dotenv()
 
 ``` python
 # Create a ComputerVisionClient for calling the Computer Vision API
+endpoint = os.environ["ENDPOINT"]
 vision_key = os.environ["VISION_KEY"]
-vision_endpoint = os.environ["VISION_ENDPOINT"]
 vision_credentials = CognitiveServicesCredentials(vision_key)
-vision_client = ComputerVisionClient(vision_endpoint, vision_credentials)
+vision_client = ComputerVisionClient(endpoint, vision_credentials)
 ```
 
-We then load `VISION_KEY` and `VISION_ENDPOINT` from our environmental variables. We then create an instance of `CognitiveServicesCredentials`, which we will use to tell the client where to locate the REST endpoint and the key to use. Finally, we create `vision_client`, an instance of `ComputerVisionClient`, which will be used to make the calls to detect characters in the image.
+We then load `VISION_KEY` and `ENDPOINT` from our environmental variables. We then create an instance of `CognitiveServicesCredentials`, which we will use to tell the client where to locate the REST endpoint and the key to use. Finally, we create `vision_client`, an instance of `ComputerVisionClient`, which will be used to make the calls to detect characters in the image.
 
 #### Enabling FlashMessage
 
@@ -221,8 +221,8 @@ We are using **dotenv** to manage our environmental variables. For development, 
 In the root of your project directory, create a new file named **.env**. This will be a plain text file. Add the following to the file:
 
 ``` bash
+ENDPOINT=<endpoint_from_prior_exercise>
 VISION_KEY=<vision_key_from_prior_exercise>
-VISION_ENDPOINT=<endpoint_from_prior_exercise>
 ```
 
 Previously you [created keys](./create-azure-keys.md), and were asked to store the key and endpoint values. Now it's time to use them! You'll replace the placeholders of `<vision_key_from_prior_exercise>` and `<endpoint_from_prior_exercise>` respectively.
@@ -232,7 +232,7 @@ Previously you [created keys](./create-azure-keys.md), and were asked to store t
 We need to update **index.html** to display the results of the text display. Just before the `<script>` element at the bottom of **index.html**, add the following markup:
 
 ``` html
-<div class="container"> 
+<div class="container">
     <div class="row">
         <div id="myModal" class="modal fade" role="dialog">
             <div class="modal-dialog">
