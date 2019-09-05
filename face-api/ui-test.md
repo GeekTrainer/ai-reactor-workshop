@@ -118,8 +118,10 @@ In a command or terminal window, execute the following command, **making sure yo
 > **NOTE:** This command **must** be executed in the same directory as your code. You must also use the same name you used previously.
 
 ``` bash
-az webapp up -n APP_NAME --resource-group contoso-travel-rg --location northcentralus
+az webapp up -n APP_NAME
 ```
+
+> **NOTE:** We don't need to specify the resource group or location as the app is already created. The tool will redeploy to the same location as before.
 
 ### Add new application settings
 
@@ -129,12 +131,6 @@ We created two new environmental variables for Face API. We need to update our A
 
 ``` bash
 az webapp config appsettings set -g contoso-travel-rg -n APP_NAME --settings FACE_API_KEY=face_api_key
-```
-
-2. Now use this command to create an application setting named **FACE_API_ENDPOINT** replacing **endpoint** with your Computer Vision API endpoint:
-
-``` bash
-az webapp config appsettings set -g contoso-travel-rg -n APP_NAME --settings FACE_API_ENDPOINT=endpoint
 ```
 
 ## Run the website
