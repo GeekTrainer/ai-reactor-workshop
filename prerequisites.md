@@ -18,7 +18,7 @@ python3 --version
 
 > **Note** If you do need to install Python, ensure you select the option to *Add Python 3.x to PATH*
 
-![Dialog box for installing Python showing PATH option selected](../images/vision_python.png)
+![Dialog box for installing Python showing PATH option selected](./images/vision_python.png)
 
 2. Upgrade to the latest version of `pip`, the Python package manager.
 
