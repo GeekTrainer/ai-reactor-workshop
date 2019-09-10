@@ -1,7 +1,5 @@
 # Set up a development environment
 
-[Prerequisite: Getting started](../2-computer-vision-text-analytics.md)
-
 The first order of business is to setup a development environment for Python, and to install the tools for managing Azure.
 
 ## Install Python and create a virtual environment
