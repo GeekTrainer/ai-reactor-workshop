@@ -91,7 +91,6 @@ for score in scores:
 As in other programming languages, it is often essential in Python to break down programs into reusable chunks. A primary means of doing that is through functions. For example, we could create a function to print the values in a list.
 
 ``` python
-
 def print_list(list):
     for score in scores:
         print(score)

@@ -6,115 +6,79 @@ Like all Cognitive Services APIs, the Computer Vision API is invoked by placing 
 
 It is the OCR feature of the Computer Vision API that will enable the Contoso Travel site to extract text from images. In this unit, you will modify Contoso Travel to use the Computer Vision API to extract text from photos uploaded to the site.
 
+## Create .env file
+
+As mentioned before, we are using [dotenv](https://github.com/theskumar/python-dotenv) to manage our environmental variables. Let's create the file we'll be using.
+
+In your code editor, create a new file named **.env**, ensuring you have the leading **.** in front of the filename. **.env** is a set of key/value pairs, so we'll add the appropriate values:
+
+``` bash
+ENDPOINT=<endpoint_value>
+VISION_KEY=<vision_key>
+```
+
+Replace `<endpoint_value>` and `<vision_key>` with the endpoint and key values you stored from the prior exercise. No quotes or other special characters are needed to contain the values.
+
 ## Add configuration code to app.py
 
-You have now subscribed to the Computer Vision API and obtained an endpoint and an API key for calling it. The next step is to modify the Contoso Travel site to use these values to call the Computer Vision API and extract text from photos. We'll start by adding the code to load the appropriate SDKs and system variables.
+You have now subscribed to the Computer Vision API and stored the endpoint and API key. The next step is to modify the Contoso Travel site to load these values.
 
-Open **app.py**. **Replace** everything **above** the line which says `@app.route("/", methods=["GET", "POST"])` with the following:
+Open **app.py**. Just below the comment which reads `# Load keys` add the following code, which will read environmental variables of `ENDPOINT`, which contains the URL of the endpoint, and `VISION_KEY`, which is the authentication key for Computer Vision:
 
 ``` python
-import os, base64
-from flask import Flask, render_template, request, flash
-
-# Import Cognitive Services SDK components
-from azure.cognitiveservices.vision.computervision import ComputerVisionClient
-from azure.cognitiveservices.vision.computervision.models import ComputerVisionErrorException
-from msrest.authentication import CognitiveServicesCredentials
-
-# Configure system variables with dotenv
-from dotenv import load_dotenv
-load_dotenv()
-
-# Create a ComputerVisionClient for calling the Computer Vision API
+# Load keys
 endpoint = os.environ["ENDPOINT"]
 vision_key = os.environ["VISION_KEY"]
-vision_credentials = CognitiveServicesCredentials(vision_key)
-vision_client = ComputerVisionClient(endpoint, vision_credentials)
-
-app = Flask(__name__)
-app.secret_key = os.urandom(24)
 ```
 
-### Breaking down the code
+## Create the client
 
-#### Importing libraries
-
-``` python
-import os, base64
-from flask import Flask, render_template, request, flash
-```
-
-The first two lines of code import the libraries we'll be using for Flask and working with images.
+We'll be using the `ComputerVisionClient` to use [Computer Vision](https://docs.microsoft.com/en-us/azure/cognitive-services/Computer-vision/Home). We'll need to load the appropriate classes, `CognitiveServiceCredentials`, which will be used to store the password, `ComputerVisionClient`, which is the actual client, and `ComputerVisionErrorException`, which represents errors raised by the service. The code finishes with the creation of the credentials, followed by the client.
 
 ``` python
-# Import Cognitive Services SDK components
+# Create vision_client
+from msrest.authentication import CognitiveServicesCredentials
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import ComputerVisionErrorException
-from msrest.authentication import CognitiveServicesCredentials
-```
 
-We then import the classes needed for calling the Computer Vision SDK. Specifically, `ComputerVisionClient`, which will be used to call the REST endpoints, `ComputerVisionErrorException`, which will be used to detect errors, and `CognitiveServicesCredentials`, which will be used to send our API key and endpoint name.
-
-#### Using dotenv
-
-``` python
-# Configure system variables with dotenv
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-[python-dotenv](https://github.com/theskumar/python-dotenv) is used to load environmental variables from a text file as opposed to setting them in the local OS or in code. To use **dotenv**, you add a file named **.env** to the root of your application. You then store the keys and values in this file. `load_dotenv()` then opens this file and sets the environmental variables for the application. When the code runs on production it will instead read the environmental variables.
-
-> **NOTE:** Make sure you add **.env** to your **.gitignore** file to avoid publishing keys to GitHub or other public repositories.
-
-> **NOTE:** dotenv is perfect for scenarios such as this where security isn't tight but you still want to avoid publishing keys publicly. For applications where keys are sensitive you may need to investigate other solutions.
-
-#### Creating the client
-
-``` python
-# Create a ComputerVisionClient for calling the Computer Vision API
-endpoint = os.environ["ENDPOINT"]
-vision_key = os.environ["VISION_KEY"]
 vision_credentials = CognitiveServicesCredentials(vision_key)
 vision_client = ComputerVisionClient(endpoint, vision_credentials)
 ```
 
-We then load `VISION_KEY` and `ENDPOINT` from our environmental variables. We then create an instance of `CognitiveServicesCredentials`, which we will use to tell the client where to locate the REST endpoint and the key to use. Finally, we create `vision_client`, an instance of `ComputerVisionClient`, which will be used to make the calls to detect characters in the image.
+## translate
 
-#### Enabling FlashMessage
-
-``` python
-app = Flask(__name__)
-app.secret_key = os.urandom(24)
-```
-
-We used this code previously to setup FlashMessage.
-
-## Update index to send the message to Computer Vision
-
-Now that we have everything configured, let's update our code to send the image to Computer Vision. Replace the `index` function, which is **after** the line which reads `app.secret_key = os.random(24)` (which should be on line 20).
+The core Flask functionality is already provided in `translate`, which is the function you'll update to add the ability to translate signage. The content of the function is below, with additional comments than the actual file to help describe what the function is doing for you.
 
 ``` python
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        # Display the image that was uploaded
-        image = request.files["file"]
-        uri = "data:image/jpg;base64," + base64.b64encode(image.read()).decode("utf-8")
-        image.seek(0)
+@app.route("/translate", methods=["GET", "POST"])
+def translate():
+    # Load image or placeholder
+    # This uses the helper function to simplify management of images
+    image = get_image(request)
 
-        # Use the Computer Vision API to extract text from the image
-        lines = extract_text_from_image(image, vision_client)
+    # Set the default for language translation
+    target_language = "en"
+    # Read the selection from the form and store it in target_language if it exists
+    if request.form and "target_language" in request.form:
+        target_language = request.form["target_language"]
 
-        # Flash the extracted text
-        for line in lines:
-            flash(line)
+    # If it's a GET, just return the form
+    if request.method == "GET":
+        # We're passing the defaults for both image and language
+        return render_template("translate.html", image_uri=image.uri, target_language=target_language)
 
-    else:
-        # Display a placeholder image
-        uri = "/static/placeholder.png"
+    # Create a placeholder for messages
+    messages = []
 
-    return render_template("index.html", image_uri=uri)
+    # TODO: Add code to retrieve text from picture
+
+    # TODO: Add code to translate text
+
+    # The user has submitted an image and language
+    # We'll be growing to add OCR and translation
+    # We're returning the template with the image, the language, 
+    # and the appropriate text in messages
+    return render_template("translate.html", image_uri=image.uri, target_language=target_language, messages=messages)
 ```
 
 ### Breaking down the code
