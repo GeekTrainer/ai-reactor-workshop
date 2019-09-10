@@ -1,6 +1,6 @@
 # Flask fundamentals
 
-[Prerequisite: Python fundamentals](./python.md)
+[Prerequisite: Python fundamentals](./intro-python.md)
 
 To quote the [creators](https://palletsprojects.com/p/flask/):
 
@@ -189,4 +189,4 @@ One benefit of using `url_for()` is that the resulting URLs are absolute, which 
 
 ## Summary and next steps
 
-We've seen some of the basics of Flask. We can now start to [create a site](./site-creation.md) for Contoso Travel.
+We've seen some of the basics of Flask. Let's [explore **app.py**](./explore-app-py.md), which is the core file we'll be using for our workshop.

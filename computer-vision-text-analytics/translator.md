@@ -1,5 +1,7 @@
 # Use Azure Cognitive Services to translate text
 
+[Prerequisites: Add Computer Vision](./computer-vision.md)
+
 The [Translator Text API](https://azure.microsoft.com/services/cognitive-services/translator-text-api/) is the component of Azure Cognitive Services that translates text from one language to another. It relies on state-of-the-art [Neural Machine Translation (NMT)](https://www.microsoft.com/translator/business/machine-translation/#nmt) to work its magic and supports [more than 60 languages](https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support).
 
 Like the Computer Vision API, the Translator Text API is invoked using REST calls over the Internet. Unlike the Computer Vision API, the Translator Text API currently has no Python SDK available. That doesn’t mean that you can’t use it from a Python application. It means that you must invoke the API by using raw HTTPS requests and write code to parse the JSON payloads that are returned.
@@ -8,19 +10,19 @@ It’s not as hard as it sounds, as you will prove when you modify the Contoso T
 
 ## Create a Text Translation key
 
-In order to call the Translator Text API, you must obtain an API key. As with the Computer Vision API, this key travels in each request you place to the Translator Text API in an `Ocp-Apim-Subscription-Key` header and maps calls to Azure subscriptions.
-
-1. In a Command Prompt window or terminal, use the following command to subscribe to the Translator Text API and place the resulting resource named **translator-text** in the resource group you created earlier:
-
 ``` bash
 az cognitiveservices account create --resource-group contoso-travel-rg --name translator-text --location global --kind TextTranslation --sku F0 --yes
 ```
+
+In order to call the Translator Text API, you must obtain an API key. As with the Computer Vision API, this key travels in each request you place to the Translator Text API in an `Ocp-Apim-Subscription-Key` header and maps calls to Azure subscriptions.
+
+In a Command Prompt window or terminal, use the following command to subscribe to the Translator Text API and place the resulting resource named **translator-text** in the resource group you created earlier:
 
 > **NOTE:** Please note the above command is all one line
 
 > **NOTE:** Unlike the Computer Vision API, which requires you to specify an Azure region, the Translator Text API is a "global" API that doesn’t live in a specific region. That’s the reason for the `--location global` parameter. Among other things, this means that you don’t have to retrieve an endpoint URL for the Translator Text API as you do for the Computer Vision API. One endpoint - https://api.cognitive.microsofttranslator.com/translate?api-version=3.0 - serves all regions.
 
-2. Use the following command to obtain an API key for the Translator Text API:
+## Retrieve the key
 
 ``` bash
 az cognitiveservices account keys list --resource-group contoso-travel-rg --name translator-text --query key1 --output tsv
@@ -44,117 +46,17 @@ TRANSLATE_KEY=<translate_key>
 
 As before, replace `<translate_key>` with the key you just created for Translator Text API.
 
-### Update index.html
+### Add code to retrieve the key from .env
 
-1. Open **index.html** and insert the following statements at line 42, **just before** the `<img>` element. This will hard code a list of languages.
-
-``` html
-<select id="target_language" class="form-control" name="target_language">
-    <option value="en">English</option>
-    <option value="zh-Hant">Chinese (simplified)</option>
-    <option value="zh-Hans">Chinese (traditional)</option>
-    <option value="fr">French</option>
-    <option value="de">German</option>
-    <option value="it">Italian</option>
-    <option value="ja">Japanese</option>
-    <option value="ko">Korean</option>
-    <option value="pt">Portugese</option>
-    <option value="es">Spanish</option>
-</select>
-```
-
-2. Also in **index.html**, add the following statement to the `<script>` block at the bottom of the page:
-
-``` html
-$("#target_language").val("{{ target_language }}");
-```
-
-Here’s how the modified `<script>` block should look:
-
-``` html
-<script type="text/javascript">
-    $(function() {
-        $("#upload-button").click(function() {
-            $("#upload-file").click();
-        });
-
-        $("#upload-file").change(function() {
-            $("#submit-button").click();
-        });
-
-        $("#target_language").val("{{ target_language }}");
-    });
-</script>
-```
-
-The purpose of the added statement is to initialize the drop-down list with the currently selected language. Without this statement, the drop-down list would revert back to the default language ("English") each time a photo is uploaded.
-
-### Update app.py
-
-1. Open **app.py** and replace the first line with the following. This will import the libraries necessary to make REST calls with Python.
+Open **app.py**. Right below the comment which reads `vision_key = os.environ["VISION_KEY"]` (in the section which starts with `# Load keys`), add the following line to read in the key:
 
 ``` python
-import os, base64, json, requests
-```
-
-2. Add the following statement right after the statements which create the instance of `ComputerVisionClient`
-
-``` python
-# Retrieve the Translator Text API key 
 translate_key = os.environ["TRANSLATE_KEY"]
 ```
 
-#### Replace index to add translation support
+### Add translate_text helper function
 
-Replace `index()` with the following code:
-
-``` python
-@app.route("/", methods=["GET", "POST"])
-def index():
-    target_language="en"
-
-    if request.method == "POST":
-        # Display the image that was uploaded
-        image = request.files["file"]
-        uri = "data:image/jpg;base64," + base64.b64encode(image.read()).decode("utf-8")
-        image.seek(0)
-
-        # Use the Computer Vision API to extract text from the image
-        lines = extract_text_from_image(image, vision_client)
-
-        # Use the Translator Text API to translate text extracted from the image
-        target_language = request.form["target_language"]
-        translated_lines = translate_text(lines, target_language, translate_key)
-
-        # Flash the translated text
-        for translated_line in translated_lines:
-            flash(translated_line)
-
-    else:
-        # Display a placeholder image
-        uri = "/static/placeholder.png"
-
-    return render_template("index.html", image_uri=uri, target_language=target_language)
-```
-
-##### Breaking down the code
-
-The new lines of code are what we'll use to call our (soon to be added) function which will call the translator API.
-
-``` python
-        target_language = request.form["target_language"]
-        translated_lines = translate_text(lines, target_language, translate_key)
-
-        # Flash the translated text
-        for translated_line in translated_lines:
-            flash(translated_line)
-```
-
-We start by reading the language from the form using `request.form["target_language"]`. We call our helper function `translate_text`, which will be created to return a list of lines of text from the image. And finally, we loop through the result in `translated_lines` adding them to FlashMessages.
-
-#### Add translate_text helper function
-
-Finally, let's add the `translate_text() function to the end of **app.py**.
+Let's add a helper function named `translate_text()` to the end of **app.py**. This function will call the REST endpoint.
 
 ``` python
 def translate_text(lines, target_language, key):
@@ -190,7 +92,7 @@ def translate_text(lines, target_language, key):
         return ["Error calling the Translator Text API"]
 ```
 
-##### Breaking down the code
+#### Breaking down the code
 
 ``` python
 uri = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + target_language
@@ -215,22 +117,35 @@ for line in lines:
 The API expects each line as an object with a single property called `text`. This section handles that conversion.
 
 ``` python
-    response = requests.post(uri, headers=headers, json=input)
-    response.raise_for_status() # Raise exception if call failed
-    results = response.json()
+response = requests.post(uri, headers=headers, json=input)
+response.raise_for_status() # Raise exception if call failed
+results = response.json()
 
-    translated_lines = []
+translated_lines = []
 
-    for result in results:
-        for translated_line in result["translations"]:
-            translated_lines.append(translated_line["text"])
+for result in results:
+    for translated_line in result["translations"]:
+        translated_lines.append(translated_line["text"])
 
-    return translated_lines
+return translated_lines
 ```
 
 We then use [Requests](https://2.python-requests.org/en/master/), the de facto standard for Python for making HTTP(S) calls. `post` indicates a POST call, and we specify the `uri` to call, our `headers`, which contains the key, and `json`, which is the text we wish to have translated. We specify we want errors to be raised if we don't receive a 200 response by calling `raise_for_status()`. Finally, we retrieve the results by calling `json()`.
 
 Similar to before, we loop through the results and append them to a list called `translated_lines`, and return the value.
+
+### Update translate to call our new helper function
+
+With the helper function created, let's update `translate()` to call the new `translate_text` function. Inside `translate`, just below the comment which says `# TODO: Add code to translate text`, add the following code:
+
+``` python
+    # TODO: Add code to translate text
+    messages = translate_text(messages, target_language, translate_key)
+```
+
+> **NOTE:** The tab at the beginning of the line of code is required. Python uses tab levels to identify enclosures, and we want to put the call to `extract_text_from_message` inside `index`. It should be in line with the existing comment.
+
+We pass in the lines of code we wish to translate, which is stored in `messages`, and then the code of the language we want to target for translation. As mentioned before, the source language will be detected automatically.
 
 ## Test the site
 

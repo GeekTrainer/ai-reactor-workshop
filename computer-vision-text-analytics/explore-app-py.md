@@ -1,19 +1,21 @@
-# Examining app.py
+# Exploring app.py
 
-To help focus attention on calling Cognitive Services, we've provided a starter file for your use during the workshop. Some of the work has already been done, and we'll be adding the code to perform tasks like translating text and detecting faces.
+[Prerequisites: Introduction to Flask](./intro-flask.md)
+
+To help focus attention on calling Cognitive Services, we've provided a starter file for your use during the workshop. Some of the work has already been done, and we'll be adding the code to perform tasks like translating text and detecting faces. Let's walk through **app.py** to better understand the structure and what we'll be updating.
 
 ## Initial import statements
 
 ``` python
-import os, base64
+import os, base64, json, requests
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
 ```
 
-The import statements at the top are the necessary base components for a [Flask](https://flask.palletsprojects.com/en/1.1.x/) application. `os` will give us access to [environmental variables], and [base64](https://docs.python.org/2/library/base64.html) will allow us to decode images.
+The import statements at the top are the necessary base components for a [Flask](https://flask.palletsprojects.com/en/1.1.x/) application. `os` will give us access to [environmental variables], and [base64](https://docs.python.org/2/library/base64.html) will allow us to decode images. `json` is a built-in library for working with [JSON](https://docs.python.org/3.7/library/json.html) objects. Finally, [requests] (not to be confused with [request]), is a popular Python library for [making REST and HTTP calls](https://2.python-requests.org/en/master/).
 
-`Flask` will be used to create our Flask app, `render_template` will be used to send [Jinja](https://jinja.palletsprojects.com/en/2.10.x/) templates in response to user requests, and `request` will be used to access the user request and retrieve form values.
+`Flask` will be used to create our Flask app, `render_template` will be used to send [Jinja](https://jinja.palletsprojects.com/en/2.10.x/) templates in response to user requests, and `request` will be used to access the [user request and retrieve form values](https://flask.palletsprojects.com/en/1.1.x/api/?highlight=request#flask.Request).
 
 ## dotenv
 
@@ -118,3 +120,7 @@ class Image:
 ```
 
 Inside of **image.py** is our `Image` helper class. `Image` exposes a `uri` property, which will either return the default placeholder image, or convert the uploaded image into a stream for display on the page. `blob` provides the blob of the image, and will be used to upload the image to Cognitive Services. `seek(0)` is used to reset the stream back to the beginning.
+
+## Summary and next steps
+
+**app.py** represents a small Flask application. From this base structure we will add our functionality. To begin using Cognitive Services, we need to [create keys for Computer Vision](./create-computer-vision-keys.md).

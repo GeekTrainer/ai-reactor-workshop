@@ -1,6 +1,6 @@
 # Creating Azure resources
 
-[Prerequisite: Creating a Flask site](./site-creation.md)
+[Prerequisite: Exploring app.py](./explore-app-py.md)
 
 With our Flask application created, it's time to turn our attention to incorporating Computer Vision. Computer Vision is a part of [Cognitive Services](https://azure.microsoft.com/services/cognitive-services), a suite of AI tools built by Microsoft.
 
