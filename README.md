@@ -18,6 +18,7 @@ You can follow along with the coding demos on your own systems. In order to do s
 
 - [Python](./install-python.md)
 - Code editor, such as [Visual Studio Code](https://code.visualstudio.com/)
+- [Azure Command Line Interface (CLI)](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 - [Starter site](./install-starter.md)
 - [Launch the starter](./starting-site.md)
 
