@@ -1,5 +1,7 @@
 # Flask fundamentals
 
+> **NOTE:** If you want to follow along with the class, you'll need to [install Python](./install-python.md) and [the starter site](./install-starter.md).
+
 [Prerequisite: Python fundamentals](./intro-python.md)
 
 To quote the [creators](https://palletsprojects.com/p/flask/):
@@ -189,4 +191,4 @@ One benefit of using `url_for()` is that the resulting URLs are absolute, which 
 
 ## Summary and next steps
 
-We've seen some of the basics of Flask. Let's [explore **app.py**](./explore-app-py.md), which is the core file we'll be using for our workshop.
+Flask is a lightweight web framework whose greatest strength is simply getting out of the way and allowing you as a developer to focus on the problems you wish to solve. You can create both proof-of-concept and enterprise level applications with Flask, and everything in between.

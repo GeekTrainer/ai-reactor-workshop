@@ -6,13 +6,10 @@ In this module we'll examine building a web application like this - a website we
 
 To build the website, you'll perform the following tasks:
 
-1. [Configure your environment for development](../prerequisites.md)
-2. Get a quick [overview of Python](./intro-python.md)
-3. Get a quick [overview of Flask](./intro-flask.md)
-4. [Explore app.py](./explore-app-py.md), the core of our application
-5. [Create keys](./create-computer-vision-keys.md) for Computer Vision and Translator Text
-6. [Call Computer Vision API](./computer-vision.md) to extract text from photos
-7. [Call the Translator Text API](./translator.md) to translate text from extracted photos
-8. [Deploy the application](./deploy.md) to Azure
+1. [Explore app.py](./explore-app-py.md), the core of our application
+2. [Create keys](./create-computer-vision-keys.md) for Computer Vision and Translator Text
+3. [Call Computer Vision API](./computer-vision.md) to extract text from photos
+4. [Call the Translator Text API](./translator.md) to translate text from extracted photos
+5. [Deploy the application](./deploy.md) to Azure
 
 To produce the application you'll use [Python](https://python.org), one of the world's most popular programming languages, and [Flask](http://flask.pocoo.org/) for web development. Don't worry if you're not familiar with either Python or Flask; we will cover enough in this section for you to be able to produce the website.

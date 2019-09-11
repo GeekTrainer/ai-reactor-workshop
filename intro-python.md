@@ -1,6 +1,6 @@
 # Overview of Python
 
-[Prerequisite: Installation](../prerequisites.md)
+> **NOTE:** If you want to follow along with the class, you'll need to [install Python](./install-python.md) and [the starter site](./install-starter.md).
 
 Since its first release in 1991, Python has risen to become a popular general-purpose programming language. Because Python is easy to pick up for programmers familiar with other languages, this section provides only a quick overview of the specific Python syntax we will use to create our website.
 
@@ -142,4 +142,4 @@ from flask import render_template
 
 ## Summary and next steps
 
-We've seen how to get started with Python. As you can see, Python is relatively lightweight, yet powerful and flexible. Next step is to take a look at [Flask](./intro-flask.md)
+We've highlighted some of the most common pieces of syntax in Python, and in this course. Using this knowledge you can continue to grow your Python skills, and begin looking at frameworks like [Flask](./intro-flask.md).
