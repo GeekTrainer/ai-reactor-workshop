@@ -45,42 +45,6 @@ vision_credentials = CognitiveServicesCredentials(vision_key)
 vision_client = ComputerVisionClient(endpoint, vision_credentials)
 ```
 
-## translate
-
-The core Flask functionality is already provided in `translate`, which is the function you'll update to add the ability to translate signage. The content of the function is below, with additional comments than the actual file to help describe what the function is doing for you.
-
-``` python
-@app.route("/translate", methods=["GET", "POST"])
-def translate():
-    # Load image or placeholder
-    # This uses the helper function to simplify management of images
-    image = get_image(request)
-
-    # Set the default for language translation
-    target_language = "en"
-    # Read the selection from the form and store it in target_language if it exists
-    if request.form and "target_language" in request.form:
-        target_language = request.form["target_language"]
-
-    # If it's a GET, just return the form
-    if request.method == "GET":
-        # We're passing the defaults for both image and language
-        return render_template("translate.html", image_uri=image.uri, target_language=target_language)
-
-    # Create a placeholder for messages
-    messages = []
-
-    # TODO: Add code to retrieve text from picture
-
-    # TODO: Add code to translate text
-
-    # The user has submitted an image and language
-    # We'll be growing to add OCR and translation
-    # We're returning the template with the image, the language, 
-    # and the appropriate text in messages
-    return render_template("translate.html", image_uri=image.uri, target_language=target_language, messages=messages)
-```
-
 ## Calling Computer Vision
 
 Let's create the helper function which will send the image to Computer Vision and prepare the results. Add the following function to the end of **app.py**.
