@@ -1,6 +1,6 @@
 # Train Face API
 
-[Prerequisite: Introduction](./introduction.md)
+[Prerequisite: Introduction](./facial-recognition-concepts.md)
 
 In order to recognize people in an image you need to first train up your model. This is done by uploading pictures containing the face of the person you wish to be able to identify, and specifying a name. There is no pre-built UI for performing the task, but it can be completed with a couple of lines of code.
 

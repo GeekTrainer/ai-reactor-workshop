@@ -1,6 +1,6 @@
 # The Face API: How it works
 
-[Prerequisites: The basics of Face API](../3-face-api.md)
+[Prerequisites: Module overview](./README.md)
 
 As a developer, you interact with Microsoft's facial recognition algorithms through an API. As with all other Microsoft Cognitive Services, Face API is available via a REST-based web service, allow you to detect, verify, identify and analyze faces. The service can provide face matching and characteristic analysis. It can also extract face related attributes such as emotion, or group people and facial definitions together to locate similar faces.
 

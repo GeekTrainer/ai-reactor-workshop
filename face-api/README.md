@@ -10,4 +10,4 @@ To add the functionality, you will:
 2. Learn about [facial recognition](./facial-recognition-concepts.md)
 3. [Train a model](./train-face-api.md)
 4. [Add face detection](./detect-face-api.md)
-5. [Test and deploy the site](./ui-test.md)
+5. [Test and deploy the site](./deploy.md)
