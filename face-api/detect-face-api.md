@@ -36,6 +36,10 @@ def detect_people(client, person_group_id, image):
         # Get all candidates - who might this face be?
         candidates = face.candidates
 
+        # If no candidates, continue
+        if len(candidates) == 0:
+            continue
+
         # Sort by most likely candidate
         candidates = sorted(candidates, key=(lambda candidate: candidate.confidence), reverse=True)
 
@@ -82,14 +86,22 @@ for face in identified_faces:
     # Get all candidates - who might this face be?
     candidates = face.candidates
 
+    # If no candidates, continue
+    if len(candidates) == 0:
+        continue
+
     # Sort by most likely candidate
     candidates = sorted(candidates, key=(lambda candidate: candidate.confidence), reverse=True)
+
+    # If no candidates, continue
+    if len(candidates) == 0:
+        continue
 
     # Get just the top candidate
     top_candidate = candidates[0]
 ```
 
-We start our loop through the list of possible matches by getting list of `candidates` from the face. We then sort the candidates by `confidence` in reverse order (biggest to smallest) by using [sorted](https://docs.python.org/3/library/functions.html#sorted). `sorted` will give us a list, so we grab the first (the most likely match or `candidate`) by using the 0 indexer.
+We start our loop through the list of possible matches by getting list of `candidates` from the face. If there are no candidates, we look for the next possible matched face. If there are candidates, we sort them by `confidence` in reverse order (biggest to smallest) by using [sorted](https://docs.python.org/3/library/functions.html#sorted). `sorted` will give us a list, so we grab the first (the most likely match or `candidate`) by using the 0 indexer.
 
 #### Getting the name of the top candidate
 
