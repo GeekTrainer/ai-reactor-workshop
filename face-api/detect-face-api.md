@@ -2,55 +2,110 @@
 
 [Prerequisite: Train a model with Face API](./train-face-api.md)
 
-With a model trained, we're now able to detect faces. When working with any AI (or ML) solution, the answers are never perfect. In the case of Face API, a confidence score will be returned with the execution, which we can then use to indicate to the user how sure we are the correct person was found.
+With a model trained, we're now able to detect faces. When working with any AI (or ML) solution, the answers are never perfect. In the case of Face API, a confidence score will be returned with the execution, which we can then use to indicate to the user how sure we are the correct person was found. We're going to update **app.py** to add detection capabilities, and display the list of users found by Face API.
 
-We're going to update **app.py** to add a **detect** route, and display the list of users found by Face API.
+## General flow of identification with Face API
 
-## Create detect function
+Identifying a face using Face API requires a few steps. When you send an image to Face API, an ID is automatically generated and applied to every unique face detected, and is stored for 24 hours. We can then use this ID to perform additional functions, such as asking for similar faces or, in our case, identification. In the helper function we create, you'll notice these high level steps: (we'll review the code as always)
 
-1. Between the `train` and `get_people` functions you created in **app.py**, add the following code.
+1. Upload an image to Face API, and receive a collection of faces
+2. Convert the list of faces to just a list of IDs (we just need the IDs)
+3. Send the IDs to Face API for a list of possible candidates
+4. Each face will have 0 **or more** possible candidates
+5. Get the top candidate, and ask for the `person` (which we created earlier)
+6. Retrieve the name from the `person`
+
+## Create detect_people helper function
+
+At the bottom of **app.py**, add the following code. As with `train_person`, there's quite a bit required as we can't simply ask for the person directly. But we'll step through the code to help explain what's going on.
 
 ``` python
-@app.route('/detect', methods=['GET', 'POST'])
-def detect():
-    if request.method == 'GET':
-        return render_template('detect.html')
-
-    if 'file' not in request.files:
-        return 'No file detected'
-    image = request.files['file']
-
-    # Find all the faces in the picture
+    # Find all faces in the image
     faces = face_client.face.detect_with_stream(image)
 
-    # Get just the IDs so we can see who they are
-    face_ids = list(map((lambda f: f.face_id), faces))
+    # Get just the IDs (for identification)
+    face_ids = list(map((lambda face: face.face_id), faces))
 
-    # Ask Azure who the faces are
+    # Identify the faces
     identified_faces = face_client.face.identify(face_ids, person_group_id)
 
-    names = get_names(identified_faces)
+    results = []
+    # Loop through each identified face
+    for face in identified_faces:
+        # Get all candidates - who might this face be?
+        candidates = face.candidates
 
-    if len(names) > 0:
-        # Display the people
-        return render_template('detect.html', names=names)
-    else:
-        # Display an error message
-        return render_template('detect.html', message="Sorry, nobody looks familiar")
+        # Sort by most likely candidate
+        candidates = sorted(candidates, key=(lambda candidate: candidate.confidence), reverse=True)
+
+        # Get just the top candidate
+        top_candidate = candidates[0]
+
+        # Ask our model who this person is
+        person = face_client.person_group_person.get(person_group_id, top_candidate.person_id)
+
+        # Add the person to the list of results
+        if top_candidate.confidence > .8:
+            results.append('I see ' + person.name)
+        else:
+            results.append('I think I see ' + person.name)
+
+    return results
 ```
 
 ### Breaking down the code
 
-#### Reading the image from the post
+#### Identifying the faces
 
 ``` python
-if request.method == 'GET':
-    return render_template('detect.html')
+# Find all faces in the image
+faces = face_client.face.detect_with_stream(image)
 
-if 'file' not in request.files:
-    return 'No file detected'
-image = request.files['file']
+# Get just the IDs (for identification)
+face_ids = list(map((lambda face: face.face_id), faces))
+
+# Identify the faces
+identified_faces = face_client.face.identify(face_ids, person_group_id)
 ```
+
+`detect_with_stream` will return a collection of faces. Each face will have all the metadata associated with the face, such as the coordinates of its location in the image, the location of the landmarks (such as nose and mouth), and an ID which Face API will keep to provide additional information about the face.
+
+In our case, the only thing we need is just the ID, as it's the only component required for asking Face API for person identification. We use the built-in [map](https://docs.python.org/3/library/functions.html#map) function to get a list of just the `face_id`s.
+
+Finally, we pass the `face_ids` into `identify` to ask Face API to perform the identification. `identify` will give us a list of possible matches from the model we've trained up. Each possible match, or `candidate` will contain a `confidence` score (0-1 index), and `person_id`, which is the ID of the person possibly matched in our model.
+
+#### Getting the top candidates
+
+``` python
+for face in identified_faces:
+    # Get all candidates - who might this face be?
+    candidates = face.candidates
+
+    # Sort by most likely candidate
+    candidates = sorted(candidates, key=(lambda candidate: candidate.confidence), reverse=True)
+
+    # Get just the top candidate
+    top_candidate = candidates[0]
+```
+
+We start our loop through the list of possible matches by getting list of `candidates` from the face. We then sort the candidates by `confidence` in reverse order (biggest to smallest) by using [sorted](https://docs.python.org/3/library/functions.html#sorted). `sorted` will give us a list, so we grab the first (the most likely match or `candidate`) by using the 0 indexer.
+
+#### Getting the name of the top candidate
+
+``` python
+# Ask our model who this person is
+person = face_client.person_group_person.get(person_group_id, top_candidate.person_id)
+
+# Add the person to the list of results
+if top_candidate.confidence > .8:
+    results.append('I see ' + person.name)
+else:
+    results.append('I think I see ' + person.name)
+```
+
+Sadly the candidate doesn't include the person's name, but it does have their `person_id`. We can pass this ID, along with the ID of the group, into `get` on `person_group_person` to get the `person`. And from `person` we can finally retrieve the name.
+
+We finish by appending to our results list an appropriate message. If the score is greater than .8 (80%), then it's very likely we have the right person. Otherwise, we're not entirely sure.
 
 Similar to our boilerplate code in our [train function](./train-face-api.md), we start by looking to see if the user requested the page by **GET**, meaning they navigated to it. If so, we simply display the **detect** template. If they uploaded an image via **POST** we ensure there's a file uploaded, and then store it in a variable named `image`.
 
@@ -77,86 +132,35 @@ We need to get the ID for each detected face, and only the IDs. We use Python's 
 
 Once we have the IDs of the faces we can then call `identify`, which will give us a list of possible matches for each id. Unfortunately, this still doesn't give us the name! We're going to add another helper function to perform the final step of mapping the identified face to the name.
 
-#### Displaying the results
+## Calling our helper function from detect
+
+Let's update `detect` to now call our `detect_people` function. Inside of `detect` in **app.py**, just below the comment which reads `# TODO: Add code to detect people in picture`, add the following code. We call our helper function, passing in the `face_client`, the ID of the person group, and the blob of the image.
 
 ``` python
-if len(names) > 0:
-    # Display the people
-    return render_template('detect.html', names=names)
-else:
-    # Display an error message
-    return render_template('detect.html', message="Sorry, nobody looks familiar")
+    # TODO: Add code to detect people in picture
+    messages = detect_people(face_client, person_group_id, image.blob)
 ```
 
-Once we have the list of names from our `get_names` helper function, we then check to see if any were returned. Assuming there are, we pass them into the template of **detect.html**. If not, we simply send an error message.
+> **NOTE:** The tab at the beginning of the line of code is required. Python uses tab levels to identify enclosures, and we want to put the call to `detect_people` inside `detect`. It should be in line with the existing comment.
 
-## Finding the names
+## Testing our site
 
-With our code built to detect the various faces in our image, it's time to turn our attention to putting names to them. We'll do this by creating a helper function to walk through the faces, and then ask our model to identify them.
+Let's see our model in action! After saving all files, the process running our site should automatically reload. If you closed the command or terminal window you used to launch the site previously, you can open a new one, navigate to the directory containing your code, and then execute the following commands:
 
-1. Add the following to the end of **app.py**.
+``` bash
+# Windows
+set FLASK_ENV=development
+flask run
 
-``` python
-def get_names(identified_faces):
-    names = []
-    for face in identified_faces:
-        # Find the top candidate for each face
-        candidates = sorted(face.candidates, key=lambda c: c.confidence, reverse=True)
-        # Was anyone recognized?
-        if candidates and len(candidates) > 0:
-            # Get just the top candidate
-            top_candidate = candidates[0]
-            # See who the person is
-            person = face_client.person_group_person.get(person_group_id, top_candidate.person_id)
-
-            # How certain are we this is the person?
-            if top_candidate.confidence > .8:
-                names.append('I see ' + person.name)
-            else:
-                names.append('I think I see ' + person.name)
-    return names
+# macOS and Linux
+export FLASK_ENV=development
+flask run
 ```
 
-### Breaking down the code
+In a browser, navigate to **http://localhost:5000/detect**. Click the **Upload Photo** button, and select a picture containing a person you've used to train your model. The picture can contain multiple faces. Check out the results!
 
-#### Finding our candidates
-
-``` python
-names = []
-for face in identified_faces:
-    # Find the top candidate for each face
-    candidates = sorted(face.candidates, key=lambda c: c.confidence, reverse=True)
-```
-
-Each face will have a list of possible `candidates`, or who the person might be. Each candidate will have a `confidence`, which will be a 0.0 to 1.0 score of how certain the model is it identified a person. We want to find the person who most likely belongs to our face, meaning we need to perform a sort.
-
-We perform the sort by using the Python function `sorted`. [sorted](https://docs.python.org/3/library/functions.html?highlight=sorted#sorted) accepts the list to sort as the first parameter. The second parameter is the function we wish to use to sort them, where we'll return the `confidence` score. The list will be sorted from lowest to highest, which we want to `reverse` so we can see the most likely candidate on the top.
-
-#### Finding the name
-
-``` python
-if len(candidates) > 0:
-    # Get just the top candidate
-    top_candidate = candidates[0]
-    # See who the person is
-    person = face_client.person_group_person.get(person_group_id, top_candidate.person_id)
-```
-
-Each face might have multiple candidates (or none). We check to see if any possible matches were found by using `len`. Assuming there's at least one candidate, we grab the first by using `candidates[0]` and storing it in `top_candidate`. We **finally** put the name to the face by making a call to `get`, which allows us to pass in the ID of our person group, and then the ID of the person we found.
-
-#### Match confidence
-
-``` python
-# How certain are we this is the person?
-if top_candidate.confidence > .8:
-    names.append('I see ' + person.name)
-else:
-    names.append('I think I see ' + person.name)
-return names
-```
-
-We close off by checking the confidence score and changing our output message accordingly. You can choose whatever threshold you feel is appropriate. For this sample, we've gone with 0.8, or 80%.
+> **NOTE:** You might not get perfect results. Remember the key to training any model is plenty of varied data. You may need to upload pictures of the same person in various settings, lighting configurations, etc.
 
 ## Summary and next steps
 
-We've now added the detection side of facial recognition. As we've seen there's a few steps we need to complete to make the magic happen. But once its built we can now discover who's in a photo! Next we'll [see the UI and test our application](./ui-test.md).
+We've now added the detection side of facial recognition. As we've seen there's a few steps we need to complete to make the magic happen. But once its built we can now discover who's in a photo! Next we'll [see the UI and test our application](./deploy.md).

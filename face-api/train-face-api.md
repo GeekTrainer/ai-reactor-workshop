@@ -169,7 +169,7 @@ Inside of the existing `train` function, immediately below the comment `# TODO: 
     messages = train_person(face_client, person_group_id, name, image.blob)
 ```
 
-> **NOTE:** The tab at the beginning of the line of code is required. Python uses tab levels to identify enclosures, and we want to put the call to `extract_text_from_message` inside `index`. It should be in line with the existing comment.
+> **NOTE:** The tab at the beginning of the line of code is required. Python uses tab levels to identify enclosures, and we want to put the call to `train_person` inside `train`. It should be in line with the existing comment.
 
 We call our `train_person` function by passing in the `face_client`, the ID of our group, and the blob of the image.
 
