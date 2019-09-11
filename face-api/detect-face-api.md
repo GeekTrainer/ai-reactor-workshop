@@ -20,6 +20,7 @@ Identifying a face using Face API requires a few steps. When you send an image t
 At the bottom of **app.py**, add the following code. As with `train_person`, there's quite a bit required as we can't simply ask for the person directly. But we'll step through the code to help explain what's going on.
 
 ``` python
+def detect_people(client, person_group_id, image):
     # Find all faces in the image
     faces = face_client.face.detect_with_stream(image)
 
