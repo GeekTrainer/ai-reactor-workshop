@@ -1,6 +1,6 @@
 # Overview of facial recognition
 
-[Prerequisite: Overview of Face API](./3-face-api.md)
+[Prerequisite: Overview of Face API](./introduction.md)
 
 The face-detection feature of Face API provides information about detected faces in an image, but it isn't designed to identify or recognize a specific face. However, Face API offers this capability through a facial recognition feature.
 

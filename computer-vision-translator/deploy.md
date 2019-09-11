@@ -1,6 +1,6 @@
 # Create an Azure App Service
 
-[Prerequisite: Adding text analytics](text-analytics.md)
+[Prerequisite: Translating text](./translator.md)
 
 [Azure App Service](https://azure.microsoft.com/en-us/documentation/articles/app-service-value-prop-what-is/) is a set of services provided by Microsoft Azure to enable developers to easily build and deploy web apps. Included in the App Service family are [Azure Web Apps](https://azure.microsoft.com/en-us/documentation/articles/app-service-web-overview/), which allow you to quickly and easily deploy websites built with tools and languages you’re already familiar with.
 

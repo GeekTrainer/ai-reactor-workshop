@@ -1,16 +1,18 @@
 # Train Face API
 
-[Prerequisite: Introduction](./introduction.md)
+[Prerequisite: Introduction](./facial-recognition-concepts.md)
 
 In order to recognize people in an image you need to first train up your model. This is done by uploading pictures containing the face of the person you wish to be able to identify, and specifying a name. There is no pre-built UI for performing the task, but it can be completed with a couple of lines of code.
 
-## Creating the key
+> **NOTE:** In order to complete this portion of the lab, **a standard subscription is required** for Face API. You can see the [pricing details for Face API](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/face-api/) for more information.
+
+## Managing the key
 
 As we've seen, in order to us a Cognitive Service we need to have a key. You can create an [All-in-One](https://portal.azure.com/#create/Microsoft.CognitiveServicesAllInOne) key, which will give you access to almost every Cognitive Service, or create a key for each separate service. The advantage to the latter (creating a key for each service) is there is a free pricing tier available. We're going to create a key for Face API by using the [Azure CLI](https://docs.microsoft.com/cli/azure/get-started-with-azure-cli?view=azure-cli-latest).
 
-1. In a command or terminal window, execute the following command.
+### Creating the key
 
-> **NOTE:** In order to complete this portion of the lab, **a standard subscription is required** for Face API. You can see the [pricing details for Face API](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/face-api/) for more information.
+In a command or terminal window, execute the following command.
 
 ``` bash
 az cognitiveservices account create --resource-group contoso-travel-rg --name face-api --location northcentralus --kind Face --sku S0 --yes
@@ -18,17 +20,17 @@ az cognitiveservices account create --resource-group contoso-travel-rg --name fa
 
 > **NOTE:** As before, we are placing our service in northcentralus. We want to ensure all related services are placed in the same region for performance.
 
-1. Retrieve the key you just created by using the Azure CLI. Make sure you **log this key somewhere**, as we'll be using it momentarily.
+### Retrieving the key
+
+Retrieve the key you just created by using the Azure CLI. Make sure you **log this key somewhere**, as we'll be using it momentarily.
 
 ``` bash
 az cognitiveservices account keys list --resource-group contoso-travel-rg --name computer-vision --query key1 --output tsv
 ```
 
-## Adding the key to .env
+### Adding the key to .env
 
-We're using dotenv to manage our environmental variables. We now have a new key we need to store, the one for Face API.
-
-1. At the end of **.env**, add the following line
+We're using dotenv to manage our environmental variables. We now have a new key we need to store, the one for Face API. At the end of **.env**, add the following line
 
 ``` bash
 FACE_API_KEY=<your_face_api_key>
@@ -36,171 +38,159 @@ FACE_API_KEY=<your_face_api_key>
 
 Update `<your_face_api_key>` with the key and URL you received from the prior step.
 
-## Adding the package
+## Update app.py to include the ability to train faces
 
-Like any Cognitive Service, it is possible to perform Face API operations via REST calls. However, we're going to use the SDK to make things easier. We'll start by installing the SDK.
+We're going to add the first part of the necessary functionality to recognize faces, which is to train the model. We will start by retrieving our key, then creating our client, then adding the code required to perform the training.
 
-1. Open **requirements.txt** and add the following to the bottom. This is the SDK for Face API.
+### Retrieve the key
 
-``` bash
-azure-cognitiveservices-vision-face
+In **app.py**, in the bottom of the `# Load keys section` (right below `translate_key = os.environ["TRANSLATE_KEY"]`), add the following code:
+
+``` python
+face_key = os.environ["FACE_KEY"]
 ```
 
-2. Install the new package by using `pip`. Ensure you are using the [virtual environment you created previously](../computer-vision-text-analytics/installation.md). In a command or terminal window, change directories to the one containing your source code, and issue the `pip` command to install from **requirements.txt**.
+### Create an instance of FaceClient
 
-``` bash
-pip install -r requirements.txt
-```
+We're going to use `FaceClient` to interact with Face API. `FaceClient` is similar to the `ComputerVisionClient` we worked with previously.
 
-> **NOTE:** This step assumes you have activated the environment. If not, you can do so by calling `.\env\Scripts\activate` on Windows or `. ./env/bin/activate` on macOS or Linux (ensuring you have the leading `.`).
-
-## Create the face_client
-
-We're going to use `face_client` to interact with Face API. We'll start by adding the code to read the key, and then create the object.
-
-1. Open **app.py**. Right below the line which reads `translate_key = os.environ["TRANSLATE_KEY"]`, add the following:
+In **app.py**, below the line which reads `# Create face_client`, add the following code:
 
 ``` python
 from azure.cognitiveservices.vision.face import FaceClient
-face_api_key=os.environ["FACE_API_KEY"]
-face_client = FaceClient(endpoint, CognitiveServicesCredentials(face_api_key))
-person_group_id = 'reactor'
+
+face_credentials = CognitiveServicesCredentials(face_key)
+face_client = FaceClient(endpoint, face_credentials)
+
+person_group_id = "reactor"
 ```
 
-Similar to the steps performed with Computer Vision, we import the class we'll be using (`FaceClient`), read the key, and then create the client by specifying the endpoint and key. The final line of `person_group_id = 'reactor'` is the name of the Person Group we're going to be creating. Each group you create needs to be uniquely named.
+Similar to the steps performed with Computer Vision, we import the class we'll be using (`FaceClient`), create an instance of `CognitiveServicesCredentials` with the key, and then create the client by specifying the endpoint and credentials. The final line of `person_group_id = "reactor"` is the name of the Person Group we're going to be creating. This will define our "closed universe", in which we will only be able to detect people we've already trained on.
 
-## Create the train route
+### Create the train_person helper function
 
-We're going to add two routes to our application, one for training and the other for detection. We'll start by adding the route and code to train our mode.
+We're going to create a helper function named `train_person`. We will put all of the necessary code to create or update a person in our person group.
 
-1. Add the following code to the end of **app.py**.
-
-``` python
-@app.route('/train', methods=['GET', 'POST'])
-def train():
-    if request.method == 'GET':
-        return render_template('train.html')
-
-    if 'file' not in request.files:
-        return 'No file detected'
-
-    image = request.files['file']
-    name = request.form['name']
-
-    # Helper function to ensure a Face API group is created
-    people = get_people()
-
-    # Look to see if the name already exists
-    # If not create it
-    operation = "Updated"
-    person = next((p for p in people if p.name.lower() == name.lower()), None)
-    if not person:
-        operation = "Created"
-        person = face_client.person_group_person.create(person_group_id, name)
-
-    # Add the picture to the person
-    face_client.person_group_person.add_face_from_stream(person_group_id, person.person_id, image)
-
-    # Train the model
-    face_client.person_group.train(person_group_id)
-
-    # Display the page to the user
-    return render_template('train.html', message="{} {}".format(operation, name))
-```
-
-### Breaking down the code
-
-#### Check for an image
+At the bottom of **app.py**, add the following code. You'll notice there's a fair bit of it, as `FaceClient` doesn't necessarily provide some of the functions we might expect. We will break down each section to help show what we're doing in this code.
 
 ``` python
-if request.method == 'GET':
-    return render_template('train.html')
-
-if 'file' not in request.files:
-    return 'No file detected'
-```
-
-The basic flow for a user training an image is to first see the page (via **GET**), and then provide a name and image (via **POST**). We start by checking if the user has requested the page via **GET**, and if so returning the **train.html** page. If they have uploaded a file via **POST**, we then check to see if there is a file in the form, and if not return an error message.
-
-#### Retrieving the people in our model
-
-``` python
-people = get_people()
-```
-
-We're calling a helper function (which we'll create in a few minutes) to both create our group if it doesn't exist and get us the list of people in the group.
-
-#### Create the person
-
-``` python
-# Look to see if the name already exists
-# If not create it
-operation = "Updated"
-person = next((p for p in people if p.name.lower() == name.lower()), None)
-if not person:
-    operation = "Created"
-    person = face_client.person_group_person.create(person_group_id, name)
-```
-
-If the person doesn't exist, as identified by their name, we're going to create them. We start by looping through the list of people (unfortunately there is no `get` function) to find the person. If no match is found, we create the person by calling `create`.
-
-> **NOTE:** The `next` function works similar to `coalesce` in SQL. If the first value returns nothing, then it uses the second value. This is needed when using the `for` loop to find an item, as if no item is returned Python will raise an error.
-
-#### Upload the image and train the model
-
-``` python
-# Add the picture to the person
-face_client.person_group_person.add_face_from_stream(person_group_id, person.person_id, image)
-
-# Train the model
-face_client.person_group.train(person_group_id)
-
-# Display the page to the user
-return render_template('train.html', message="{} {}".format(operation, name))
-```
-
-We finish by adding a face to the person by calling `add_face_from_stream` and sending the image the user uploaded. We then train the model by calling `train` and specifying the group. We close by returning the template to display the message confirming we created or updated the mode.
-
-> **NOTE:** In our example we're retraining the model each time we add a new picture. While this is fine for our sample, in the real world you should consider uploading images and people in bulk and then training at the end.
-
-## Managing the group
-
-Let's create the `get_people` helper function to manage our group and retrieve the list of people in the group.
-
-1. Add the following to the end of **app.py**.
-
-``` python
-def get_people():
+def train_person(client, person_group_id, name, image):
+    # Try to create the group, and just pass if it doesn't exist
     try:
-        face_client.person_group.create(person_group_id, name=person_group_id)
+        client.person_group.create(person_group_id, name=person_group_id)
     except:
         pass
-    people = face_client.person_group_person.list(person_group_id)
-    return people
+
+    name = name.lower()
+
+    # No get_by_name function, so get all persons
+    people = client.person_group_person.list(person_group_id)
+
+    # See if one exists with our name
+    people_with_name = list(filter(lambda p: p.name == name, people))
+
+    if len(people_with_name) > 0:
+        person = people_with_name[0]
+        operation = "Updated"
+    else:
+        # Create if doesn't exist
+        person = client.person_group_person.create(person_group_id, name)
+        operation = "Created"
+
+    # Add the face to the person
+    client.person_group_person.add_face_from_stream(person_group_id, person.person_id, image)
+
+    # Retrain the model
+    client.person_group.train(person_group_id)
+
+    return ["{} {}".format(operation, name)]
 ```
 
-### Breaking down the code
+#### Breaking down the code
 
-#### Creating the group
+##### Create the group if needed
 
 ``` python
+# Try to create the group, and just pass if it doesn't exist
 try:
-    face_client.person_group.create(person_group_id, name=person_group_id)
+    client.person_group.create(person_group_id, name=person_group_id)
 except:
     pass
 ```
 
-Unfortunately, `face_client` doesn't support an `exists` function or another way to simply check for the existence of a group. We can either make a call to `get`, check for an error, and then `create`, or simply attempt `create`, and ignore any errors. That's the approach we've taken here.
+The `get` function on `FaceClient` throws an exception if the group you wish to find doesn't exist. Because we need to make a round trip to the server anyway, we simply `create` the group, using the same ID as the name, and then catch any error and suppress it by using `pass` inside of `except`.
 
-#### Retrieving and returning people
+##### Create a person
 
 ``` python
-people = face_client.person_group_person.list(person_group_id)
-return people
+name = name.lower()
+
+# No get_by_name function, so get all persons
+people = client.person_group_person.list(person_group_id)
+
+# See if one exists with our name
+people_with_name = list(filter(lambda p: p.name == name, people))
+
+if len(people_with_name) > 0:
+    person = people_with_name[0]
+    operation = "Updated"
+else:
+    # Create if doesn't exist
+    person = client.person_group_person.create(person_group_id, name)
+    operation = "Created"
 ```
 
-Each group has a collection of people. There is no ability to retrieve a single person, so instead we call `list`. We return the list to the `train` function we created earlier for use in creating or updating the person.
+We start by changing the name provided to lower case letters for normalization. Because this becomes our key, we want to ensure it's case insensitive.
+
+We then retrieve all of the people in our person group by using `person_group_person.list` and passing in the ID of our group. Because there is no `get` function which allows us to load a person by name, we use the [filter](https://docs.python.org/3/library/functions.html#filter) function in Python to find the person who matches the given name.
+
+If there's at least one result, as revealed by `len`, we know there's a person with that name already. We store the person, and set the operation message to be **Updated**, since we'll be adding a face to an existing person. If the person doesn't exist, we `create` the person, and then set the operation message to **Created**.
+
+#### Add the face and train the model
+
+``` python
+# Add the face to the person
+client.person_group_person.add_face_from_stream(person_group_id, person.person_id, image)
+
+# Retrain the model
+client.person_group.train(person_group_id)
+
+return ["{} {}".format(operation, name)]
+```
+
+We close by calling `add_face_from_stream` to add a person to a person group. We `train` the model. And finally we set an output message by passing in the operation (**Created** or **Updated**) and the name of the person.
+
+### Add the call to train_person to train
+
+Inside of the existing `train` function, immediately below the comment `# TODO: Add code to create or update person`, add the following code:
+
+``` python
+    # TODO: Add code to create or update person
+    messages = train_person(face_client, person_group_id, name, image.blob)
+```
+
+> **NOTE:** The tab at the beginning of the line of code is required. Python uses tab levels to identify enclosures, and we want to put the call to `train_person` inside `train`. It should be in line with the existing comment.
+
+We call our `train_person` function by passing in the `face_client`, the ID of our group, and the blob of the image.
+
+## Testing our site
+
+After saving all files, the process running our site should automatically reload. If you closed the command or terminal window you used to launch the site previously, you can open a new one, navigate to the directory containing your code, and then execute the following commands:
+
+``` bash
+# Windows
+set FLASK_ENV=development
+flask run
+
+# macOS and Linux
+export FLASK_ENV=development
+flask run
+```
+
+In a browser, navigate to **http://localhost:5000/train**. Type the name of the person you wish to train, and then click **Upload** to select a picture of the person (such as yourself!). **The image you use can only have one face.** There is no UI for seeing the model in action; we're going to create that in the next section.
 
 ## Summary and next steps
+
+We could have added additional code to allow someone to choose an existing name from a dropdown list, and to click an additional button to create a new name. This would have meant additional code, which we might not have had time to complete during the workshop. If you'd like, you can experiment with the code and see how you might be able to introduce functionality.
 
 We've seen how to create the necessary key for Face API, and add the appropriate code to train the model with a person. Next, we'll see how we can [detect a person in an image](./detect-face-api.md).
